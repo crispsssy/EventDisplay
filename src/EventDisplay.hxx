@@ -20,6 +20,7 @@
 #include <TVector3.h>
 #include <TEllipse.h>
 #include <TMarker.h>
+#include <TText.h>
 #include <RQ_OBJECT.h>
 #include <iostream>
 #include <vector>
@@ -91,6 +92,7 @@ private:
 	static TEllipse* cdcInnerWall;
 	std::map<int, TGraph*> g_waveforms;
 	std::map<int, std::vector<TMarker>> fTDCMarkers;
+	std::map<int, std::vector<TText>> fTDCMarkerText;
 };
 
 #endif // EVENTDISPLAY_HXX

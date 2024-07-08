@@ -57,7 +57,7 @@ namespace ROOT {
       ::EventDisplay *ptr = nullptr;
       static ::TVirtualIsAProxy* isa_proxy = new ::TIsAProxy(typeid(::EventDisplay));
       static ::ROOT::TGenericClassInfo 
-         instance("EventDisplay", "src/EventDisplay.hxx", 31,
+         instance("EventDisplay", "src/EventDisplay.hxx", 32,
                   typeid(::EventDisplay), ::ROOT::Internal::DefineBehavior(ptr, ptr),
                   &EventDisplay_Dictionary, isa_proxy, 0,
                   sizeof(::EventDisplay) );

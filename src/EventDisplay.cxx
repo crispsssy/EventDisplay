@@ -257,6 +257,7 @@ void EventDisplay::UpdateWaveforms(){
 		waveform->second = nullptr;
 	}
 	fTDCMarkers.clear();
+	fTDCMarkerText.clear();
 	//fill new waveforms
 	for(auto hit = fHits->begin(); hit != fHits->end(); ++hit){
 		int channel = (*hit)->GetChannelID();
@@ -274,11 +275,17 @@ void EventDisplay::UpdateWaveforms(){
 		}
 		std::vector<int> tdcs = (*hit)->GetTDC();
 		for(auto tdc = tdcs.begin(); tdc != tdcs.end(); ++tdc){
-			TMarker m((double)(*tdc) / 32, 0, 22);
-//			std::cout<<"TDC marker at x = "<<(double)(*tdc) / 32<<std::endl;
+			double x = (double)(*tdc) / 32;
+			double y = 0;
+			TMarker m(x, y, 22);
 			m.SetMarkerColor(kRed);
 			m.SetMarkerSize(1);
 			fTDCMarkers[channel].push_back(m);
+			TText tt(x, y, Form("%d", *tdc));
+			tt.SetTextSize(0.035);
+			tt.SetTextAlign(22);
+			tt.SetTextColor(kRed);
+			fTDCMarkerText[channel].push_back(tt);
 		}
 		g_waveforms[channel] = g;
 	}
@@ -485,10 +492,18 @@ void EventDisplay::ShowWaveform(TVirtualPad* pad, TObject* obj, Int_t ihp, Int_t
 
         if(g_waveforms.size() != 0 && g_waveforms.find(ihp) != g_waveforms.end()){
                 c_waveform->cd();
+		c_waveform->Clear();
+		c_waveform->Update();
                 g_waveforms.at(ihp)->Draw("APL");
+		double y = g_waveforms.at(ihp)->GetYaxis()->GetXmin();
+		double yRange = g_waveforms.at(ihp)->GetYaxis()->GetXmax() - g_waveforms.at(ihp)->GetYaxis()->GetXmin();
 		for(auto marker = fTDCMarkers[ihp].begin(); marker != fTDCMarkers[ihp].end(); ++marker){
-			marker->SetY(g_waveforms.at(ihp)->GetYaxis()->GetXmin());
+			marker->SetY(y);
 			marker->Draw();
+		}
+		for(auto text = fTDCMarkerText[ihp].begin(); text != fTDCMarkerText[ihp].end(); ++text){
+			text->SetY(y + 0.05 * yRange);
+			text->Draw();
 		}
                 gPad->Update();
         }
