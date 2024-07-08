@@ -50,7 +50,7 @@ private:
 	double CDCLength = 1600.;
 
 	static CDCGeom* fCDCGeom;
-//	std::string fMapPath = "/Users/siyuan/Physics/comet/crt/tracking/ch_map/ch_map.root";
+	std::string fMapPath = "/Users/siyuan/Physics/comet/crt/tracking/ch_map/ch_map.root";
 };
 
 #endif

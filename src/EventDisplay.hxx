@@ -2,6 +2,7 @@
 #define EVENTDISPLAY_HXX
 
 #include <TApplication.h>
+#include <TTimer.h>
 #include <TGClient.h>
 #include <TGFrame.h>
 #include <TGButton.h>

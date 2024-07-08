@@ -91,12 +91,8 @@ void EventDisplay::Preprocess() {
 	IOData::Get().ReadFile(fFileName);
 	IOData::Get().Preprocess(numEvent);
 
-//	mainFrame->RemoveFrame(processButton);
-//	delete processButton;
-	mainFrame->Cleanup();
-
 	// Call SetupDisplay to create new elements
-	SetupDisplay();
+	TTimer::SingleShot(100, "EventDisplay", this, "SetupDisplay()");
 }
 
 void EventDisplay::ErrorMessage(std::string message){
@@ -107,6 +103,7 @@ void EventDisplay::ErrorMessage(std::string message){
 }
 
 void EventDisplay::SetupDisplay() {
+	mainFrame->Cleanup();
 	// Create embedded canvas
 	embeddedCanvas = new TRootEmbeddedCanvas("embeddedCanvas", mainFrame, 800, 600);
 	mainFrame->AddFrame(embeddedCanvas, new TGLayoutHints(kLHintsExpandX | kLHintsExpandY));
