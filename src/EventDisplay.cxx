@@ -211,6 +211,10 @@ void EventDisplay::EntryNumberChanged(){
 		std::cerr<<"Exceed max event number!!!"<<std::endl;
 		return;
 	}
+	if(event < 0){
+		std::cerr<<"Invalid event number!!!"<<std::endl;
+		return;
+	}
 	if(fEvent != event){
 		fEvent = event;
 		std::cout<<"event number is "<<fEvent<<std::endl;
@@ -287,6 +291,15 @@ void EventDisplay::UpdateWaveforms(){
 			tt.SetTextColor(kRed);
 			fTDCMarkerText[channel].push_back(tt);
 		}
+		TText tt_withUnder(0.7, 0.85, Form("ADC sum with undershoot = %d", (*hit)->GetADCSumWithUnderShoot()));
+		tt_withUnder.SetTextSize(0.035);
+		tt_withUnder.SetTextAlign(22);
+		tt_withUnder.SetNDC();
+		TText tt_withoutUnder(0.7, 0.8, Form("ADC sum w/o undershoot = %d", (*hit)->GetADCSumWithoutUnderShoot()));
+		tt_withoutUnder.SetTextSize(0.035);
+		tt_withoutUnder.SetTextAlign(22);
+		tt_withoutUnder.SetNDC();
+		fADCSumText[channel] = std::pair<TText, TText>(tt_withUnder, tt_withoutUnder);
 		g_waveforms[channel] = g;
 	}
 }
@@ -342,8 +355,8 @@ void EventDisplay::UpdateGraph(){
 			graph_filtered->GetPoint(i, x, y);
 			if(x == 0 && y == 0) graph_filtered->SetPoint(i, 99999, 99999);
 		}
+		graph_filtered->Draw("P");
 		graph->Draw("P");
-		graph_filtered->Draw("PSAME");
 		gPad->Update();
 		graph->SetHighlight();
 		graph_filtered->SetHighlight();
@@ -421,8 +434,8 @@ void EventDisplay::UpdateGraph(){
 		frame_odd->GetXaxis()->SetTitle("X [mm]");
 		frame_odd->GetYaxis()->SetTitle("Y [mm]");
 		DrawCDCXY();
+		graph_odd_filtered->Draw("P");
 		graph_odd->Draw("P");
-		graph_odd_filtered->Draw("PSAME");
 		gPad->SetLeftMargin(0.13);
 		gPad->Update();
 		graph_odd->SetHighlight();
@@ -433,8 +446,8 @@ void EventDisplay::UpdateGraph(){
 		frame_even->GetXaxis()->SetTitle("X [mm]");
 		frame_even->GetYaxis()->SetTitle("Y [mm]");
 		DrawCDCXY();
+		graph_even_filtered->Draw("P");
 		graph_even->Draw("P");
-		graph_even_filtered->Draw("PSAME");
 		gPad->SetLeftMargin(0.13);
 		gPad->Update();
 		graph_even->SetHighlight();
@@ -505,6 +518,8 @@ void EventDisplay::ShowWaveform(TVirtualPad* pad, TObject* obj, Int_t ihp, Int_t
 			text->SetY(y + 0.05 * yRange);
 			text->Draw();
 		}
+		fADCSumText[ihp].first.Draw();
+		fADCSumText[ihp].second.Draw();
                 gPad->Update();
         }
 	else std::cerr<<"Can not find waveform graph!!! channel = "<<ihp<<std::endl;

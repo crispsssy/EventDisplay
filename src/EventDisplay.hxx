@@ -93,6 +93,7 @@ private:
 	std::map<int, TGraph*> g_waveforms;
 	std::map<int, std::vector<TMarker>> fTDCMarkers;
 	std::map<int, std::vector<TText>> fTDCMarkerText;
+	std::map<int, std::pair<TText, TText>> fADCSumText;
 };
 
 #endif // EVENTDISPLAY_HXX
