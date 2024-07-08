@@ -43,10 +43,12 @@ public:
 	void IsOddEvenSelected(int isOddEvenEntry);
 	void EntryNumberChanged();
 	void ZPosSelected(int zPosEntry);
+	void FilterChanged();
 	void UpdateWaveforms();
 	void UpdateGraph();
 	void DrawCDCXY();
 	void ShowWaveform(TVirtualPad* pad, TObject* obj, Int_t ihp, Int_t y);
+	bool IsFiltered(CDCHit* hit);
 
 private:
 	TGMainFrame* mainFrame = nullptr;
@@ -71,6 +73,12 @@ private:
 	int fEvent = 0;
 	int fIsOddEvenEntry = 0;
 	int fZPosEntry = 0;
+	int fTDCMin = 0;
+	int fTDCMax = 1050;
+	int fADCSumWUnderMin = -1000;
+	int fADCSumWUnderMax = 10000;
+	int fADCSumWOUnderMin = 0;
+	int fADCSumWOUnderMax = 10000;
 	CDCHitContainer* fHits;
 	TCanvas* c_waveform = nullptr;
 	TGraph* graph = nullptr;

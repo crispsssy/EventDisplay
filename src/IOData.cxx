@@ -117,10 +117,16 @@ CDCHitContainer* IOData::GetHits(int event){
 	for(int iCh=0; iCh<4992; ++iCh){
 		if(tdcNhit[iCh] > 0){
 			CDCHit* hit = new CDCHit(iCh);
+			int sum = 0;
+			int sum_woUnder = 0;
 			for(int iSample = 0; iSample < 32; ++iSample){
 				hit->InsertADC(adc[iCh][iSample]);
 				if(tdcDiff[iCh][iSample] != 0) hit->InsertTDC(tdcDiff[iCh][iSample] - fTDCMinValue);
+				if(adc[iCh][iSample] > fPedestal[iCh]) sum_woUnder += adc[iCh][iSample] - fPedestal[iCh];
+				sum += adc[iCh][iSample] - fPedestal[iCh];
 			}
+			hit->SetADCSumWithUnderShoot(sum);
+			hit->SetADCSumWithoutUnderShoot(sum_woUnder);
 			fHits->push_back(hit);
 		}
 	}

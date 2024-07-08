@@ -151,8 +151,8 @@ void EventDisplay::SetupDisplay() {
 	T0Label = new TGLabel(tdcOptionFrame, Form("(T0 = %d)", IOData::Get().GetT0()));
 	T0Label->SetTextColor(0xFF0000);
 	TGLabel* tdcLabel = new TGLabel(tdcOptionFrame, "TDC range");
-	tdcMinEntry = new TGNumberEntry(tdcOptionFrame, 0, 9, -1, TGNumberFormat::kNESInteger);
-	tdcMaxEntry = new TGNumberEntry(tdcOptionFrame, 1000, 9, -1, TGNumberFormat::kNESInteger);
+	tdcMinEntry = new TGNumberEntry(tdcOptionFrame, fTDCMin, 9, -1, TGNumberFormat::kNESInteger);
+	tdcMaxEntry = new TGNumberEntry(tdcOptionFrame, fTDCMax, 9, -1, TGNumberFormat::kNESInteger);
 	tdcOptionFrame->AddFrame(T0Label, new TGLayoutHints(kLHintsBottom | kLHintsCenterX, 40, 40, 10, 10));
 	tdcOptionFrame->AddFrame(tdcLabel, new TGLayoutHints(kLHintsBottom | kLHintsCenterX, 5, 5, 10, 10));
 	tdcOptionFrame->AddFrame(tdcMinEntry, new TGLayoutHints(kLHintsBottom | kLHintsCenterX, 5, 5, 10, 10));
@@ -160,16 +160,16 @@ void EventDisplay::SetupDisplay() {
 
 	// Add ADC sum with undershoot filter
 	TGLabel* adcSumWithUndershootLabel = new TGLabel(adcSumWithUndershootOptionFrame, "ADC sum with undershoot range");
-	adcSumWithUndershootMinEntry = new TGNumberEntry(adcSumWithUndershootOptionFrame, -1000, 9, -1, TGNumberFormat::kNESInteger);
-	adcSumWithUndershootMaxEntry = new TGNumberEntry(adcSumWithUndershootOptionFrame, 10000, 9, -1, TGNumberFormat::kNESInteger);
+	adcSumWithUndershootMinEntry = new TGNumberEntry(adcSumWithUndershootOptionFrame, fADCSumWUnderMin, 9, -1, TGNumberFormat::kNESInteger);
+	adcSumWithUndershootMaxEntry = new TGNumberEntry(adcSumWithUndershootOptionFrame, fADCSumWUnderMax, 9, -1, TGNumberFormat::kNESInteger);
 	adcSumWithUndershootOptionFrame->AddFrame(adcSumWithUndershootLabel, new TGLayoutHints(kLHintsBottom | kLHintsCenterX, 15, 15, 10, 10));
 	adcSumWithUndershootOptionFrame->AddFrame(adcSumWithUndershootMinEntry, new TGLayoutHints(kLHintsBottom | kLHintsCenterX, 5, 5, 10, 10));
 	adcSumWithUndershootOptionFrame->AddFrame(adcSumWithUndershootMaxEntry, new TGLayoutHints(kLHintsBottom | kLHintsCenterX, 5, 5, 10, 10));
 
 	// Add ADC sum without undershoot filter
 	TGLabel* adcSumWithoutUndershootLabel = new TGLabel(adcSumWithoutUndershootOptionFrame, "ADC sum without undershoot range");
-	adcSumWithoutUndershootMinEntry = new TGNumberEntry(adcSumWithoutUndershootOptionFrame, 0, 9, -1, TGNumberFormat::kNESInteger);
-	adcSumWithoutUndershootMaxEntry = new TGNumberEntry(adcSumWithoutUndershootOptionFrame, 10000, 9, -1, TGNumberFormat::kNESInteger);
+	adcSumWithoutUndershootMinEntry = new TGNumberEntry(adcSumWithoutUndershootOptionFrame, fADCSumWOUnderMin, 9, -1, TGNumberFormat::kNESInteger);
+	adcSumWithoutUndershootMaxEntry = new TGNumberEntry(adcSumWithoutUndershootOptionFrame, fADCSumWOUnderMax, 9, -1, TGNumberFormat::kNESInteger);
 	adcSumWithoutUndershootOptionFrame->AddFrame(adcSumWithoutUndershootLabel, new TGLayoutHints(kLHintsBottom | kLHintsCenterX, 5, 5, 10, 10));
 	adcSumWithoutUndershootOptionFrame->AddFrame(adcSumWithoutUndershootMinEntry, new TGLayoutHints(kLHintsBottom | kLHintsCenterX, 5, 5, 10, 10));
 	adcSumWithoutUndershootOptionFrame->AddFrame(adcSumWithoutUndershootMaxEntry, new TGLayoutHints(kLHintsBottom | kLHintsCenterX, 5, 5, 10, 10));
@@ -180,9 +180,15 @@ void EventDisplay::SetupDisplay() {
 	mainFrame->AddFrame(displayOptionFrame, new TGLayoutHints(kLHintsBottom | kLHintsCenterX, 5, 5, 10, 10));
 
 	//Connections
-	boxIsOddEven->Connect("Selected(Int_t)",                 "EventDisplay", this, "IsOddEvenSelected(int)");
-	eventEntry->Connect("ValueSet(Long_t)",                  "EventDisplay", this, "EntryNumberChanged()");
-	boxZPos->Connect("Selected(Int_t)",                      "EventDisplay", this, "ZPosSelected(int)");
+	boxIsOddEven->Connect("Selected(Int_t)",                       "EventDisplay", this, "IsOddEvenSelected(int)");
+	eventEntry->Connect("ValueSet(Long_t)",                        "EventDisplay", this, "EntryNumberChanged()");
+	boxZPos->Connect("Selected(Int_t)",                            "EventDisplay", this, "ZPosSelected(int)");
+	tdcMinEntry->Connect("ValueSet(Long_t)",                       "EventDisplay", this, "FilterChanged()");
+	tdcMaxEntry->Connect("ValueSet(Long_t)",                       "EventDisplay", this, "FilterChanged()");
+	adcSumWithUndershootMinEntry->Connect("ValueSet(Long_t)",      "EventDisplay", this, "FilterChanged()");
+	adcSumWithUndershootMaxEntry->Connect("ValueSet(Long_t)",      "EventDisplay", this, "FilterChanged()");
+	adcSumWithoutUndershootMinEntry->Connect("ValueSet(Long_t)",   "EventDisplay", this, "FilterChanged()");
+	adcSumWithoutUndershootMaxEntry->Connect("ValueSet(Long_t)",   "EventDisplay", this, "FilterChanged()");
 	// Set window name and map subwindows, main window
 	mainFrame->SetWindowName("Event Display");
 	mainFrame->MapSubwindows();
@@ -218,6 +224,27 @@ void EventDisplay::ZPosSelected(int zPosEntry){
 	std::cout<<"Z position selected"<<std::endl;
 	if(fZPosEntry != zPosEntry){
 		fZPosEntry = zPosEntry;
+		UpdateGraph();
+	}
+}
+
+void EventDisplay::FilterChanged(){
+	std::cout<<"Filter option chenge detected"<<std::endl;
+	int tdcMin = tdcMinEntry->GetIntNumber();
+	int tdcMax = tdcMaxEntry->GetIntNumber();
+	int adcSumWUnderMin = adcSumWithUndershootMinEntry->GetIntNumber();
+	int adcSumWUnderMax = adcSumWithUndershootMaxEntry->GetIntNumber();
+	int adcSumWOUnderMin = adcSumWithoutUndershootMinEntry->GetIntNumber();
+	int adcSumWOUnderMax = adcSumWithoutUndershootMaxEntry->GetIntNumber();
+	if(fTDCMin != tdcMin || fTDCMax != tdcMax || 
+		fADCSumWUnderMin != adcSumWUnderMin || fADCSumWUnderMax != adcSumWUnderMax ||
+		fADCSumWOUnderMin != adcSumWOUnderMin || fADCSumWOUnderMax != adcSumWOUnderMax){
+		fTDCMin = tdcMin;
+		fTDCMax = tdcMax;
+		fADCSumWUnderMin = adcSumWUnderMin;
+		fADCSumWUnderMax = adcSumWUnderMax;
+		fADCSumWOUnderMin = adcSumWOUnderMin;
+		fADCSumWOUnderMax = adcSumWOUnderMax;
 		UpdateGraph();
 	}
 }
@@ -271,6 +298,10 @@ void EventDisplay::UpdateGraph(){
 			delete graph;
 			graph = nullptr;
 		}
+		if(graph_filtered){
+			delete graph_filtered;
+			graph_filtered = nullptr;
+		}
 		canvas->SetCanvasSize(800, 600);
 		TH1F* frame = gPad->DrawFrame(-850., -850., 850., 850.);
 		frame->SetTitle(Form("EventDisplay run%d entry %d", fRunNum, fEvent));
@@ -281,7 +312,11 @@ void EventDisplay::UpdateGraph(){
 		graph = new TGraph();
 		graph->SetMarkerStyle(20);
 		graph->SetMarkerSize(0.4);
-		graph->SetMarkerColor(1);
+		graph->SetMarkerColor(kBlue);
+		graph_filtered = new TGraph();
+		graph_filtered->SetMarkerStyle(20);
+		graph_filtered->SetMarkerSize(0.4);
+		graph_filtered->SetMarkerColor(kBlue-10);
 		for(std::vector<CDCHit*>::const_iterator hit = fHits->begin(); hit != fHits->end(); ++hit){
 			int channel = (*hit)->GetChannelID();
 			TVector2 pos;
@@ -289,16 +324,22 @@ void EventDisplay::UpdateGraph(){
 			else if(fZPosEntry == 1) pos = CDCGeom::Get().ChannelToZ0Pos(channel);
 			else if(fZPosEntry == 2) pos = CDCGeom::Get().ChannelToHVPos(channel);
 			else{ std::cerr<<"Error of z position entry!!!"<<std::endl; exit(-1); }
-			graph->SetPoint(channel, pos.X(), pos.Y());
+			if(IsFiltered(*hit)) graph_filtered->SetPoint(channel, pos.X(), pos.Y());
+			else graph->SetPoint(channel, pos.X(), pos.Y());
 		}
-		for(int i=0; i<graph->GetN(); ++i){
-			double x,y;
+		for(int i=0; i<4992; ++i){
+			double x = 0, y = 0;
 			graph->GetPoint(i, x, y);
 			if(x == 0 && y == 0) graph->SetPoint(i, 99999, 99999);
+			x = 0; y = 0;
+			graph_filtered->GetPoint(i, x, y);
+			if(x == 0 && y == 0) graph_filtered->SetPoint(i, 99999, 99999);
 		}
 		graph->Draw("P");
+		graph_filtered->Draw("PSAME");
 		gPad->Update();
 		graph->SetHighlight();
+		graph_filtered->SetHighlight();
 	}
 	else{
 		if(graph_odd){
@@ -309,16 +350,32 @@ void EventDisplay::UpdateGraph(){
 			delete graph_even;
 			graph_even = nullptr;
 		}
+		if(graph_odd_filtered){
+			delete graph_odd_filtered;
+			graph_odd_filtered = nullptr;
+		}
+		if(graph_even_filtered){
+			delete graph_even_filtered;
+			graph_even_filtered = nullptr;
+		}
 		canvas->SetCanvasSize(800, 400);
 		canvas->Divide(2,1);
 		graph_odd = new TGraph();
 		graph_odd->SetMarkerStyle(20);
 		graph_odd->SetMarkerSize(0.4);
-		graph_odd->SetMarkerColor(1);
+		graph_odd->SetMarkerColor(kBlue);
+		graph_odd_filtered = new TGraph();
+		graph_odd_filtered->SetMarkerStyle(20);
+		graph_odd_filtered->SetMarkerSize(0.4);
+		graph_odd_filtered->SetMarkerColor(kBlue-10);
 		graph_even = new TGraph();
 		graph_even->SetMarkerStyle(20);
 		graph_even->SetMarkerSize(0.4);
-		graph_even->SetMarkerColor(1);
+		graph_even->SetMarkerColor(kBlue);
+		graph_even_filtered = new TGraph();
+		graph_even_filtered->SetMarkerStyle(20);
+		graph_even_filtered->SetMarkerSize(0.4);
+		graph_even_filtered->SetMarkerColor(kBlue-10);
 		for(std::vector<CDCHit*>::const_iterator hit = fHits->begin(); hit != fHits->end(); ++hit){
 			int channel = (*hit)->GetChannelID();
 			int layer = CDCGeom::Get().ChannelToLayer(channel);
@@ -328,18 +385,28 @@ void EventDisplay::UpdateGraph(){
 			else if(fZPosEntry == 2) pos = CDCGeom::Get().ChannelToHVPos(channel);
 			else{ std::cerr<<"Error of z position entry!!!"<<std::endl; exit(-1); }
 
-			if(layer % 2 == 1) graph_odd->SetPoint(channel, pos.X(), pos.Y());
-			else graph_even->SetPoint(channel, pos.X(), pos.Y());
+			if(layer % 2 == 1){
+				if(IsFiltered(*hit)) graph_odd_filtered->SetPoint(channel, pos.X(), pos.Y());
+				else graph_odd->SetPoint(channel, pos.X(), pos.Y());
+			}
+			else{
+				if(IsFiltered(*hit)) graph_even_filtered->SetPoint(channel, pos.X(), pos.Y());
+				else graph_even->SetPoint(channel, pos.X(), pos.Y());
+			}
 		}
-		for(int i=0; i<graph_odd->GetN(); ++i){
-			double x,y;
+		for(int i=0; i<4992; ++i){
+			double x = 0, y = 0;
 			graph_odd->GetPoint(i, x, y);
 			if(x == 0 && y == 0) graph_odd->SetPoint(i, 99999, 99999);
-		}
-		for(int i=0; i<graph_even->GetN(); ++i){
-			double x,y;
+			x = 0; y = 0;
+			graph_odd_filtered->GetPoint(i, x, y);
+			if(x == 0 && y == 0) graph_odd_filtered->SetPoint(i, 99999, 99999);
+			x = 0, y = 0;
 			graph_even->GetPoint(i, x, y);
 			if(x == 0 && y == 0) graph_even->SetPoint(i, 99999, 99999);
+			x = 0; y = 0;
+			graph_even_filtered->GetPoint(i, x, y);
+			if(x == 0 && y == 0) graph_even_filtered->SetPoint(i, 99999, 99999);
 		}
 		canvas->cd(1);
 		TH1F* frame_odd = gPad->DrawFrame(-850., -850., 850., 850.);
@@ -348,8 +415,11 @@ void EventDisplay::UpdateGraph(){
 		frame_odd->GetYaxis()->SetTitle("Y [mm]");
 		DrawCDCXY();
 		graph_odd->Draw("P");
+		graph_odd_filtered->Draw("PSAME");
+		gPad->SetLeftMargin(0.13);
 		gPad->Update();
 		graph_odd->SetHighlight();
+		graph_odd_filtered->SetHighlight();
 		canvas->cd(2);
 		TH1F* frame_even = gPad->DrawFrame(-850., -850., 850., 850.);
 		frame_even->SetTitle(Form("EventDisplay for even layers at run%d entry %d", fRunNum, fEvent));
@@ -357,11 +427,40 @@ void EventDisplay::UpdateGraph(){
 		frame_even->GetYaxis()->SetTitle("Y [mm]");
 		DrawCDCXY();
 		graph_even->Draw("P");
+		graph_even_filtered->Draw("PSAME");
+		gPad->SetLeftMargin(0.13);
 		gPad->Update();
 		graph_even->SetHighlight();
+		graph_even_filtered->SetHighlight();
 	}
 
+	mainFrame->MapSubwindows();
+        mainFrame->MapWindow();
 	gPad = store;
+}
+
+bool EventDisplay::IsFiltered(CDCHit* hit){
+	//tdc filter
+	int channel = hit->GetChannelID();
+	std::vector<int> tdcs = hit->GetTDC();
+	if(*tdcs.begin() > fTDCMax || *tdcs.rbegin() < fTDCMin){
+		std::cout<<"Channel "<<channel<<" filtered by tdc "<<*tdcs.begin()<<" to "<<*tdcs.rbegin()<<std::endl;
+		return true;
+	}
+	//adc sum with undershoot filter
+	int sum = hit->GetADCSumWithUnderShoot();
+	if(sum > fADCSumWUnderMax || sum < fADCSumWUnderMin){
+		std::cout<<"Channel "<<channel<<" filtered by adc sum with undershoot "<<sum<<std::endl;
+		return true;
+	}
+	//adc sum without undershoot filter
+	int sum_woUnder = hit->GetADCSumWithoutUnderShoot();
+	if(sum_woUnder > fADCSumWOUnderMax || sum_woUnder < fADCSumWOUnderMin){
+		std::cout<<"Channel "<<channel<<" filtered by adc sum without undershoot "<<sum_woUnder<<std::endl;
+		return true;
+	}
+
+	return false;
 }
 
 void EventDisplay::DrawCDCXY(){
@@ -393,6 +492,6 @@ void EventDisplay::ShowWaveform(TVirtualPad* pad, TObject* obj, Int_t ihp, Int_t
 		}
                 gPad->Update();
         }
-	else std::cerr<<"Can not find waveform graph!!!"<<std::endl;
+	else std::cerr<<"Can not find waveform graph!!! channel = "<<ihp<<std::endl;
         gPad = store;
 }

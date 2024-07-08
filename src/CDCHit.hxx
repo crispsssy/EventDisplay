@@ -19,6 +19,8 @@ public:
 	void SetZ(double z){ fZ = z; }
 	bool IncreaseTDCIndex();
 	void InsertDriftDistance(double dis){ fDriftDistance.push_back(dis); }
+	void SetADCSumWithUnderShoot(int sum){ fADCSumWithUndershoot = sum; }
+	void SetADCSumWithoutUnderShoot(int sum){ fADCSumWithoutUndershoot = sum; }
 	std::vector<short> const GetADC() const { return fADC; }
 	std::vector<int> const GetTDC() const { return fTDC; }
 	int const GetChannelID() const { return fChannelID; }
@@ -28,6 +30,8 @@ public:
 	double const GetZ() const { return fZ; }
 	double const GetDriftDistance(int index) const { return fDriftDistance.at(index); }
 	std::vector<double> const GetDriftDistance() const { return fDriftDistance; }
+	int const GetADCSumWithUnderShoot() const { return fADCSumWithUndershoot; }
+	int const GetADCSumWithoutUnderShoot() const { return fADCSumWithoutUndershoot; }
 
 	void ls() const;
 
@@ -40,6 +44,8 @@ private:
 	double fDOCA = 0.;
 	double fZ = 0.;
 	unsigned int fUseTDC = 0; //determine which TDC will be used for fitting
+	int fADCSumWithUndershoot = 0;
+	int fADCSumWithoutUndershoot = 0;
 };
 
 class CDCHitContainer : public std::vector<CDCHit*>
