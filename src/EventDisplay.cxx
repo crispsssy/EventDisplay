@@ -120,31 +120,64 @@ void EventDisplay::SetupDisplay() {
 	UpdateWaveforms();
 	UpdateGraph();
 
-	TGHorizontalFrame* bottomFrame= new TGHorizontalFrame(mainFrame, 800, 30);
+	TGHorizontalFrame* displayOptionFrame = new TGHorizontalFrame(mainFrame, 800, 30);
+	TGHorizontalFrame* tdcOptionFrame = new TGHorizontalFrame(mainFrame, 800, 30);
+	TGHorizontalFrame* adcSumWithUndershootOptionFrame = new TGHorizontalFrame(mainFrame, 800, 30);
+	TGHorizontalFrame* adcSumWithoutUndershootOptionFrame = new TGHorizontalFrame(mainFrame, 800, 30);
 	// Add first TGComboBox
-	boxIsOddEven = new TGComboBox(bottomFrame, "boxIsOddEven");
+	boxIsOddEven = new TGComboBox(displayOptionFrame, "boxIsOddEven");
 	boxIsOddEven->AddEntry("all hits", 0);
 	boxIsOddEven->AddEntry("odd/even layers", 1);
-	bottomFrame->AddFrame(boxIsOddEven, new TGLayoutHints(kLHintsBottom | kLHintsLeft, 5, 5, 10, 10));
+	displayOptionFrame->AddFrame(boxIsOddEven, new TGLayoutHints(kLHintsBottom | kLHintsLeft, 5, 5, 10, 10));
 	boxIsOddEven->Select(0);
 	boxIsOddEven->Resize(150, 20);
 
 	// Add additional TGNumberEntry
-	TGLabel* entryLabel = new TGLabel(bottomFrame, "Entry");
-	bottomFrame->AddFrame(entryLabel, new TGLayoutHints(kLHintsBottom | kLHintsCenterX, 0, 0, 10, 10));
-	eventEntry = new TGNumberEntry(bottomFrame, 0, 9, -1, TGNumberFormat::kNESInteger);
-	bottomFrame->AddFrame(eventEntry, new TGLayoutHints(kLHintsBottom | kLHintsCenterX, 5, 5, 10, 10));
+	TGLabel* entryLabel = new TGLabel(displayOptionFrame, "Entry");
+	displayOptionFrame->AddFrame(entryLabel, new TGLayoutHints(kLHintsBottom | kLHintsCenterX, 0, 0, 10, 10));
+	eventEntry = new TGNumberEntry(displayOptionFrame, 0, 9, -1, TGNumberFormat::kNESInteger);
+	displayOptionFrame->AddFrame(eventEntry, new TGLayoutHints(kLHintsBottom | kLHintsCenterX, 5, 5, 10, 10));
 
 	// Add second TGComboBox
-	boxZPos = new TGComboBox(bottomFrame, "boxZPos");
+	boxZPos = new TGComboBox(displayOptionFrame, "boxZPos");
 	boxZPos->AddEntry("RO", 0);
 	boxZPos->AddEntry("Z0", 1);
 	boxZPos->AddEntry("HV", 2);
-	bottomFrame->AddFrame(boxZPos, new TGLayoutHints(kLHintsBottom | kLHintsRight, 5, 5, 10, 10));
+	displayOptionFrame->AddFrame(boxZPos, new TGLayoutHints(kLHintsBottom | kLHintsRight, 5, 5, 10, 10));
 	boxZPos->Select(0);
 	boxZPos->Resize(150, 20);
 
-	mainFrame->AddFrame(bottomFrame, new TGLayoutHints(kLHintsBottom | kLHintsCenterX, 5, 5, 10, 10));
+	// Add TDC filter TGNumberEntry
+	T0Label = new TGLabel(tdcOptionFrame, Form("(T0 = %d)", IOData::Get().GetT0()));
+	T0Label->SetTextColor(0xFF0000);
+	TGLabel* tdcLabel = new TGLabel(tdcOptionFrame, "TDC range");
+	tdcMinEntry = new TGNumberEntry(tdcOptionFrame, 0, 9, -1, TGNumberFormat::kNESInteger);
+	tdcMaxEntry = new TGNumberEntry(tdcOptionFrame, 1000, 9, -1, TGNumberFormat::kNESInteger);
+	tdcOptionFrame->AddFrame(T0Label, new TGLayoutHints(kLHintsBottom | kLHintsCenterX, 40, 40, 10, 10));
+	tdcOptionFrame->AddFrame(tdcLabel, new TGLayoutHints(kLHintsBottom | kLHintsCenterX, 5, 5, 10, 10));
+	tdcOptionFrame->AddFrame(tdcMinEntry, new TGLayoutHints(kLHintsBottom | kLHintsCenterX, 5, 5, 10, 10));
+	tdcOptionFrame->AddFrame(tdcMaxEntry, new TGLayoutHints(kLHintsBottom | kLHintsCenterX, 5, 5, 10, 10));
+
+	// Add ADC sum with undershoot filter
+	TGLabel* adcSumWithUndershootLabel = new TGLabel(adcSumWithUndershootOptionFrame, "ADC sum with undershoot range");
+	adcSumWithUndershootMinEntry = new TGNumberEntry(adcSumWithUndershootOptionFrame, -1000, 9, -1, TGNumberFormat::kNESInteger);
+	adcSumWithUndershootMaxEntry = new TGNumberEntry(adcSumWithUndershootOptionFrame, 10000, 9, -1, TGNumberFormat::kNESInteger);
+	adcSumWithUndershootOptionFrame->AddFrame(adcSumWithUndershootLabel, new TGLayoutHints(kLHintsBottom | kLHintsCenterX, 15, 15, 10, 10));
+	adcSumWithUndershootOptionFrame->AddFrame(adcSumWithUndershootMinEntry, new TGLayoutHints(kLHintsBottom | kLHintsCenterX, 5, 5, 10, 10));
+	adcSumWithUndershootOptionFrame->AddFrame(adcSumWithUndershootMaxEntry, new TGLayoutHints(kLHintsBottom | kLHintsCenterX, 5, 5, 10, 10));
+
+	// Add ADC sum without undershoot filter
+	TGLabel* adcSumWithoutUndershootLabel = new TGLabel(adcSumWithoutUndershootOptionFrame, "ADC sum without undershoot range");
+	adcSumWithoutUndershootMinEntry = new TGNumberEntry(adcSumWithoutUndershootOptionFrame, 0, 9, -1, TGNumberFormat::kNESInteger);
+	adcSumWithoutUndershootMaxEntry = new TGNumberEntry(adcSumWithoutUndershootOptionFrame, 10000, 9, -1, TGNumberFormat::kNESInteger);
+	adcSumWithoutUndershootOptionFrame->AddFrame(adcSumWithoutUndershootLabel, new TGLayoutHints(kLHintsBottom | kLHintsCenterX, 5, 5, 10, 10));
+	adcSumWithoutUndershootOptionFrame->AddFrame(adcSumWithoutUndershootMinEntry, new TGLayoutHints(kLHintsBottom | kLHintsCenterX, 5, 5, 10, 10));
+	adcSumWithoutUndershootOptionFrame->AddFrame(adcSumWithoutUndershootMaxEntry, new TGLayoutHints(kLHintsBottom | kLHintsCenterX, 5, 5, 10, 10));
+
+	mainFrame->AddFrame(adcSumWithoutUndershootOptionFrame, new TGLayoutHints(kLHintsBottom | kLHintsCenterX, 5, 5, 10, 10));
+	mainFrame->AddFrame(adcSumWithUndershootOptionFrame, new TGLayoutHints(kLHintsBottom | kLHintsCenterX, 5, 5, 10, 10));
+	mainFrame->AddFrame(tdcOptionFrame, new TGLayoutHints(kLHintsBottom | kLHintsCenterX, 5, 5, 10, 10));
+	mainFrame->AddFrame(displayOptionFrame, new TGLayoutHints(kLHintsBottom | kLHintsCenterX, 5, 5, 10, 10));
 
 	//Connections
 	boxIsOddEven->Connect("Selected(Int_t)",                 "EventDisplay", this, "IsOddEvenSelected(int)");

@@ -43,7 +43,7 @@ bool IOData::Preprocess(int numEvent){
 	for(int i=0; i<4992; ++i){
 		h_pedestal[i] = TH1S(Form("h_pedestal_%d", i), Form("h_pedestal %d", i), 100, 150, 250);
 	}
-	TH1I h_tdc("h_tdc", "h_tdc", 4000, -3000, 1000);
+	h_tdc = new TH1I("h_tdc", "h_tdc", 4000, -3000, 1000);
 	if(numEvent > t->GetEntries()) numEvent = t->GetEntries();
 	for(int iEvent = 0; iEvent < numEvent; ++iEvent){
 		t->GetEntry(iEvent);
@@ -55,7 +55,7 @@ bool IOData::Preprocess(int numEvent){
 				}
 			}
 			else{
-				h_tdc.Fill(tdcDiff[iCh][0]);
+				h_tdc->Fill(tdcDiff[iCh][0]);
 			}
 		}
 	}
@@ -66,12 +66,35 @@ bool IOData::Preprocess(int numEvent){
 		if(fPedestal[iCh] < 150) fPedestal[iCh] = 999;
 	}
 	//TDC min value
-	for(int ibin = 1; ibin <= h_tdc.GetNbinsX(); ++ibin){
-		if(h_tdc.GetBinContent(ibin) > 0){
-			fTDCMinValue = h_tdc.GetBinLowEdge(ibin);
+	for(int ibin = 1; ibin <= h_tdc->GetNbinsX(); ++ibin){
+		if(h_tdc->GetBinContent(ibin) > 0){
+			fTDCMinValue = h_tdc->GetBinLowEdge(ibin);
 			break;
 		}
 	}
+	//T0
+	double peakX = h_tdc->GetXaxis()->GetBinCenter(h_tdc->GetMaximumBin());
+	TF1* sigmoid = new TF1("sigmoid", "[0]/(1+exp(([1]-x)/[2]))");
+	sigmoid->SetParameter(0, h_tdc->GetMaximum());
+	sigmoid->SetParameter(1, peakX);
+	sigmoid->SetParameter(2, 1.);
+	h_tdc->Fit(sigmoid, "Q", "", peakX - 100, peakX + 300);
+
+	TF1* exponential = new TF1("exponential", "[0]*exp([1]*(x-[2]))");
+	exponential->SetParameter(0, sigmoid->GetParameter(0));
+	exponential->SetParameter(2, sigmoid->GetParameter(1));
+	h_tdc->Fit(exponential, "Q", "", peakX - 100, peakX + 300);
+
+	f_T0 = new TF1("f_T0", "[0]+[1]*(exp([2]*(x-[3]))/(1+exp(([4]-x)/[5])))");
+	f_T0->SetParameter(0,0.);
+        f_T0->SetParameter(1,sigmoid->GetParameter(0));
+        f_T0->SetParameter(2,exponential->GetParameter(1));
+        f_T0->SetParameter(3,sigmoid->GetParameter(1));
+        f_T0->SetParameter(4,sigmoid->GetParameter(1));
+        f_T0->SetParameter(5,sigmoid->GetParameter(2));
+        h_tdc->Fit(f_T0, "Q", "", peakX - 100, peakX + 300);
+        fT0 = f_T0->GetParameter(4) - fTDCMinValue;
+
 	return true;
 }
 	

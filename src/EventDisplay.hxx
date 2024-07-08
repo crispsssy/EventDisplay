@@ -58,6 +58,13 @@ private:
 	TGComboBox* boxIsOddEven = nullptr;
 	TGComboBox* boxZPos = nullptr;
 	TGNumberEntry* eventEntry = nullptr;
+	TGLabel* T0Label = nullptr;
+	TGNumberEntry* tdcMinEntry = nullptr;
+	TGNumberEntry* tdcMaxEntry = nullptr;
+	TGNumberEntry* adcSumWithUndershootMinEntry = nullptr;
+	TGNumberEntry* adcSumWithUndershootMaxEntry = nullptr;
+	TGNumberEntry* adcSumWithoutUndershootMinEntry = nullptr;
+	TGNumberEntry* adcSumWithoutUndershootMaxEntry = nullptr;
 
 	std::string fFileName;
 	int fRunNum = 0;
@@ -69,6 +76,9 @@ private:
 	TGraph* graph = nullptr;
 	TGraph* graph_odd = nullptr;
 	TGraph* graph_even = nullptr;
+	TGraph* graph_filtered = nullptr;
+	TGraph* graph_odd_filtered = nullptr;
+	TGraph* graph_even_filtered = nullptr;
 	static TEllipse* cdcOuterWall;
 	static TEllipse* cdcInnerWall;
 	std::map<int, TGraph*> g_waveforms;
